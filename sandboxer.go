@@ -26,7 +26,11 @@ import (
 	"syscall"
 	"log"
 	"os/exec"
+	"strings"
+	"time"
 )
+
+
 
 func main() {
 
@@ -55,10 +59,87 @@ func main() {
 		panic(err)
 	}
 
+	log.Println(os.Args)
+
+	var lockfile *os.File
+
+	for {
+		lockfile, err = os.OpenFile(os.Getenv("PDX_HOME")+"/temp/sandboxer.lock", os.O_CREATE, os.ModePerm)
+
+		err = syscall.Flock(int(lockfile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
+
+		if err == syscall.EWOULDBLOCK {
+			log.Println("another instance running, waiting")
+			time.Sleep(100 * time.Millisecond)
+			continue
+		}
+
+		break
+	}
+
+	defer func() {
+		syscall.Flock(int(lockfile.Fd()), syscall.LOCK_UN)
+		lockfile.Close()
+	}()
+
+	log.Println("now only myself is running")
+
+	time.Sleep(10000 * time.Millisecond)
+
+	housekeeping()
+
+	if !accessControl(os.Args[1:]) {
+		log.Fatal("unauthorized priviledged access, exiting ...")
+	}
+
 	if err := syscall.Exec(binary, os.Args[1:], os.Environ()); err != nil {
 		log.Fatal(err)
 		panic(err)
 	}
 
 	fmt.Println("goodbye")
+}
+
+
+func accessControl(args []string) bool {
+
+	// IMPORTANT: sandboxer whitelist rules
+	//
+	// 1) Only allow docker run/stop
+	//
+	// 2) docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+	//
+	//		a) unpriviledged only
+	//
+	//		b)
+	//
+	//		 ) record the container id
+	//
+	// 3) docker stop [OPTIONS] CONTAINER [CONTAINER...]
+	//
+	// 		only containers started by sandboxer
+	//
+	// 4) docker stats [OPTIONS] [CONTAINER...]
+	//
+	//		only containers started by sandboxer
+
+	if args[0] != "docker" {
+		log.Println("not a docker binary")
+		return false
+	}
+
+	if args[1] != "run" && args[1] != "kill" && args[1] != "stop" {
+		log.Println("not docker run/kill/stop")
+		return false
+	}
+
+	var cmd = strings.Join(args," ");
+
+	log.Println(cmd);
+
+	return false
+}
+
+func housekeeping() {
+	// remove dead container ids off the record
 }
