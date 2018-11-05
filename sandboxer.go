@@ -28,9 +28,13 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+	"bufio"
 )
 
+var lockfile = os.Getenv("PDX_HOME")+"/temp/sandboxer.lock"
+var datafile = os.Getenv("PDX_HOME")+"/temp/sandboxer.data"
 
+var startedContainers  = make(map[string]string)
 
 func main() {
 
@@ -61,12 +65,12 @@ func main() {
 
 	log.Println(os.Args)
 
-	var lockfile *os.File
+	var lockF *os.File
 
 	for {
-		lockfile, err = os.OpenFile(os.Getenv("PDX_HOME")+"/temp/sandboxer.lock", os.O_CREATE, os.ModePerm)
+		lockF, err = os.OpenFile(lockfile, os.O_CREATE, os.ModePerm)
 
-		err = syscall.Flock(int(lockfile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
+		err = syscall.Flock(int(lockF.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
 
 		if err == syscall.EWOULDBLOCK {
 			log.Println("another instance running, waiting")
@@ -78,19 +82,41 @@ func main() {
 	}
 
 	defer func() {
-		syscall.Flock(int(lockfile.Fd()), syscall.LOCK_UN)
-		lockfile.Close()
+		syscall.Flock(int(lockF.Fd()), syscall.LOCK_UN)
+		lockF.Close()
 	}()
 
 	log.Println("now only myself is running")
 
-	time.Sleep(10000 * time.Millisecond)
-
-	housekeeping()
-
 	if !accessControl(os.Args[1:]) {
 		log.Fatal("unauthorized priviledged access, exiting ...")
 	}
+
+	loadStartedContainers()
+
+	housekeeping()
+
+	// get name of container to be created
+
+	var name string = ""
+
+	for i, v := range os.Args[1:] {
+		if v == "--name" {
+			name = os.Args[i + 2]
+			break
+		}
+	}
+
+	if name == "" {
+		log.Println("missing container name, existing ...")
+		os.Exit(-1)
+	}
+
+	startedContainers[name] = name
+
+	saveStartedContainers()
+
+	log.Println("starting container: ", name)
 
 	if err := syscall.Exec(binary, os.Args[1:], os.Environ()); err != nil {
 		log.Fatal(err)
@@ -113,7 +139,7 @@ func accessControl(args []string) bool {
 	//
 	//		b)
 	//
-	//		 ) record the container id
+	//		c) record the container id
 	//
 	// 3) docker stop [OPTIONS] CONTAINER [CONTAINER...]
 	//
@@ -137,9 +163,50 @@ func accessControl(args []string) bool {
 
 	log.Println(cmd);
 
-	return false
+	return true
 }
 
 func housekeeping() {
 	// remove dead container ids off the record
+}
+
+func loadStartedContainers() {
+
+	file, err := os.OpenFile(datafile, os.O_RDONLY, os.ModePerm)
+	if err != nil {
+		log.Println("cannot read data file: ", err)
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		text := scanner.Text()
+		startedContainers[text] = text
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Println(err)
+	}
+}
+
+func saveStartedContainers() {
+
+	os.Remove(datafile)
+
+	file, err := os.Create(datafile)
+	if err != nil {
+		log.Println("cannot write data file: ", err)
+		return
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+
+	for _, v := range startedContainers {
+		fmt.Fprintln(writer, v)
+	}
+
+	writer.Flush()
 }
