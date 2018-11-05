@@ -1,4 +1,4 @@
-# PDX dockerhlpr, a setuid docker helper to start/stop PDX docker containers  
+# PDX sandboxer, a setuid docker helper to start/stop PDX docker containers
 
 -- Without setuid/gid
 
