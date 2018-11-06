@@ -42,11 +42,17 @@ func main() {
 		fmt.Println("")
 		fmt.Println("PDX sandboxer, a hardened setgid docker helper for PDX smart-contract sandboxing")
 		fmt.Println("")
-		fmt.Println("Usage [after privilege elevation]: ./sandboxer docker [OPTIONS] COMMAND [ARG...]")
+		fmt.Println("Usage [after privilege elevation via sudo or setgid]:")
+		fmt.Println("")
+		fmt.Println("	./sandboxer docker run [OPTIONS] IMAGE [COMMAND] [ARG...]")
+		fmt.Println("	./sandboxer docker stop [OPTIONS] CONTAINER [CONTAINER...]")
+		fmt.Println("	./sandboxer docker stats [OPTIONS] [CONTAINER...]")
+		fmt.Println("")
+		fmt.Println("Note: Option name and argument (if present) MUST be ONE token")
 		fmt.Println("")
 		fmt.Println("For example,")
 		fmt.Println("")
-		fmt.Println("	sudo ./sandboxer docker run -it -v $PDX_HOME/dapps:/dapps/ pdx-dapp-omni /bin/sh")
+		fmt.Println("	./sandboxer docker run -it -v=$PDX_HOME/dapps:/dapps/ pdx-dapp-omni /bin/sh")
 		fmt.Println("")
                 fmt.Println("Please visit https://github.com/PDXbaap/pdx-sandboxer to get the latest version.")
 		fmt.Println("")
@@ -92,7 +98,7 @@ func main() {
 		log.Fatal("unauthorized priviledged access, exiting ...")
 	}
 
-	loadStartedContainers()
+	loadStarted()
 
 	housekeeping()
 
@@ -114,7 +120,7 @@ func main() {
 
 	startedContainers[name] = name
 
-	saveStartedContainers()
+	saveStarted()
 
 	log.Println("starting container: ", name)
 
@@ -129,17 +135,15 @@ func main() {
 
 func accessControl(args []string) bool {
 
+	////////////////////////////////////////////////////////
+	//
 	// IMPORTANT: sandboxer whitelist rules
 	//
-	// 1) Only allow docker run/stop
+	// 1) Only allow docker run/stop/stats
 	//
 	// 2) docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
 	//
-	//		a) unpriviledged only
-	//
-	//		b)
-	//
-	//		c) record the container id
+	//		unprivileged no-harm options only
 	//
 	// 3) docker stop [OPTIONS] CONTAINER [CONTAINER...]
 	//
@@ -148,29 +152,117 @@ func accessControl(args []string) bool {
 	// 4) docker stats [OPTIONS] [CONTAINER...]
 	//
 	//		only containers started by sandboxer
+	//
+    //////////////////////////////////////////////////////
+
+	// only do docker, nothing else
 
 	if args[0] != "docker" {
 		log.Println("not a docker binary")
 		return false
 	}
 
-	if args[1] != "run" && args[1] != "kill" && args[1] != "stop" {
-		log.Println("not docker run/kill/stop")
+	// only stats what we have started
+
+	if args[1] == "stats" {
+
+		for _, v := range args[2:] {
+
+			if strings.HasPrefix(v, "-") {
+				continue
+			}
+
+			if _, ok := startedContainers[v]; !ok {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	// only stop what we have started
+
+	if args[1] == "stop" {
+
+		for _, v := range args[2:] {
+
+			if strings.HasPrefix(v, "-") {
+				continue
+			}
+
+			if _, ok := startedContainers[v]; !ok {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	if args[1] != "run" {
+		log.Println("not docker run/stop/stats")
 		return false
 	}
 
-	var cmd = strings.Join(args," ");
+	// check docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
 
-	log.Println(cmd);
+	for i := 2; i < len(args) ; i++ {
 
-	return true
+		v := args[i]
+
+		if strings.HasPrefix(v,"--privileged") {
+			if !strings.Contains(v,"=false") {
+				return false
+			}
+		}
+
+		if strings.HasPrefix(v, "--cap-add") {
+			return false
+		}
+
+		if strings.HasPrefix(v,"--device") {
+			return false
+		}
+
+		if strings.HasPrefix(v, "--group-add") {
+			return false
+		}
+
+		if strings.HasPrefix(v,"--ipc") {
+			if strings.Contains(v, "host") || strings.Contains(v, "shareable") ||
+				strings.Contains(v, "container:") {
+				return false
+			}
+		}
+
+		if strings.HasPrefix(v, "--security-opt")  {
+			if !strings.Contains(v, "no-new-privileges") {
+				return false
+			}
+		}
+
+		if strings.HasPrefix(v, "-v") || strings.HasPrefix(v, "--volume") {
+			if !strings.Contains(v,"ro") {
+				return false;
+			}
+		}
+
+		if !strings.HasPrefix(v, "-") { //docker image now
+			if v == "pdxbaap/pdx-dapp-omni" || v == "pdx-dapp-omni" ||
+				v == "pdxbaap/pdx-dapp-exec" || v == "pdx-dapp-exec" ||
+				v == "pdxbaap/pdx-dapp-java" || v == "pdx-dapp-java" {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func housekeeping() {
 	// remove dead container ids off the record
 }
 
-func loadStartedContainers() {
+func loadStarted() {
 
 	file, err := os.OpenFile(datafile, os.O_RDONLY, os.ModePerm)
 	if err != nil {
@@ -191,7 +283,7 @@ func loadStartedContainers() {
 	}
 }
 
-func saveStartedContainers() {
+func saveStarted() {
 
 	os.Remove(datafile)
 
