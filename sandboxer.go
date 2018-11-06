@@ -118,6 +118,8 @@ func main() {
 			os.Exit(-1)
 		}
 
+		cleanup()
+
 		startedContainers[name] = name
 
 		saveStarted()
@@ -275,8 +277,30 @@ func accessControl(args []string) bool {
 	return false
 }
 
-func housekeeping() {
+func cleanup() {
+
 	// remove dead container ids off the record
+
+	for _, v := range startedContainers {
+
+		//docker inspect -f '{{.State.Running}}' v
+
+		out, err := exec.Command("docker", "-f", "{{.State.Running}}", v).CombinedOutput()
+
+		if err != nil {
+			delete(startedContainers, v)
+			log.Println("inspect error:", err)
+			log.Println("cleanup dead container: ", v)
+			continue
+		}
+
+		if string(out) != "true" {
+			delete(startedContainers, v)
+			log.Println("cleanup dead container: ", v)
+		}
+	}
+
+	log.Println("cleanup done ")
 }
 
 func loadStarted() {
