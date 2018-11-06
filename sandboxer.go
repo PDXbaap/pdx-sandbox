@@ -48,13 +48,13 @@ func main() {
 		fmt.Println("	./sandboxer docker stop [OPTIONS] CONTAINER [CONTAINER...]")
 		fmt.Println("	./sandboxer docker stats [OPTIONS] [CONTAINER...]")
 		fmt.Println("")
-		fmt.Println("Note: Option name and argument (if present) MUST be ONE token")
+		fmt.Println("Note: A with-arg option MUST be in --k=v or -k=v format.")
 		fmt.Println("")
 		fmt.Println("For example,")
 		fmt.Println("")
 		fmt.Println("	./sandboxer docker run -it -v=$PDX_HOME/dapps:/dapps/ pdx-dapp-omni /bin/sh")
 		fmt.Println("")
-                fmt.Println("Please visit https://github.com/PDXbaap/pdx-sandboxer to get the latest version.")
+		fmt.Println("Please visit https://github.com/PDXbaap/pdx-sandboxer to get the latest version.")
 		fmt.Println("")
 	}
 
@@ -94,35 +94,37 @@ func main() {
 
 	log.Println("now only myself is running")
 
+	loadStarted()
+
 	if !accessControl(os.Args[1:]) {
 		log.Fatal("unauthorized priviledged access, exiting ...")
 	}
 
-	loadStarted()
-
-	housekeeping()
-
 	// get name of container to be created
 
-	var name string = ""
+	if os.Args[2] == "run" {
 
-	for i, v := range os.Args[1:] {
-		if v == "--name" {
-			name = os.Args[i + 2]
-			break
+		var name string = ""
+
+		for _, v := range os.Args[1:] {
+			if strings.HasPrefix(v, "--name") {
+				name = strings.Split(v, "=")[1]
+				break
+			}
 		}
+
+		if name == "" {
+			log.Println("missing container name, existing ...")
+			os.Exit(-1)
+		}
+
+		startedContainers[name] = name
+
+		saveStarted()
+
+		log.Println("starting container: ", name)
+
 	}
-
-	if name == "" {
-		log.Println("missing container name, existing ...")
-		os.Exit(-1)
-	}
-
-	startedContainers[name] = name
-
-	saveStarted()
-
-	log.Println("starting container: ", name)
 
 	if err := syscall.Exec(binary, os.Args[1:], os.Environ()); err != nil {
 		log.Fatal(err)
@@ -153,6 +155,9 @@ func accessControl(args []string) bool {
 	//
 	//		only containers started by sandboxer
 	//
+	//
+	// A docker option-with-arg must be in --key=val or -k=val format
+	//
     //////////////////////////////////////////////////////
 
 	// only do docker, nothing else
@@ -173,6 +178,7 @@ func accessControl(args []string) bool {
 			}
 
 			if _, ok := startedContainers[v]; !ok {
+				log.Println("not a sandboxed container: " + v)
 				return false
 			}
 		}
@@ -191,6 +197,7 @@ func accessControl(args []string) bool {
 			}
 
 			if _, ok := startedContainers[v]; !ok {
+				log.Println("not a sandboxed container: " + v)
 				return false
 			}
 		}
@@ -203,55 +210,64 @@ func accessControl(args []string) bool {
 		return false
 	}
 
-	// check docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+	// Check docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
 
-	for i := 2; i < len(args) ; i++ {
-
-		v := args[i]
+	for _,v := range args[2:] {
 
 		if strings.HasPrefix(v,"--privileged") {
 			if !strings.Contains(v,"=false") {
+				log.Println("unauthorized option: " + v)
 				return false
 			}
 		}
 
 		if strings.HasPrefix(v, "--cap-add") {
+			log.Println("unauthorized option: " + v)
 			return false
 		}
 
 		if strings.HasPrefix(v,"--device") {
+			log.Println("unauthorized option: " + v)
 			return false
 		}
 
 		if strings.HasPrefix(v, "--group-add") {
+			log.Println("unauthorized option: " + v)
 			return false
 		}
 
 		if strings.HasPrefix(v,"--ipc") {
 			if strings.Contains(v, "host") || strings.Contains(v, "shareable") ||
 				strings.Contains(v, "container:") {
+				log.Println("unauthorized ipc mechanism: " + v)
 				return false
 			}
 		}
 
 		if strings.HasPrefix(v, "--security-opt")  {
 			if !strings.Contains(v, "no-new-privileges") {
+				log.Println("unauthorized security option: " + v)
 				return false
 			}
 		}
 
 		if strings.HasPrefix(v, "-v") || strings.HasPrefix(v, "--volume") {
 			if !strings.Contains(v,"ro") {
+				log.Println("volume must be read-only: " + v)
 				return false;
 			}
 		}
 
 		if !strings.HasPrefix(v, "-") { //docker image now
+
 			if strings.HasPrefix(v, "pdxbaap/pdx-sandbox") || strings.HasPrefix(v, "pdx-sandbox") ||
 				strings.HasPrefix(v, "pdxbaap/pdx-dapp-omni") || strings.HasPrefix(v, "pdx-dapp-omni")  ||
 				strings.HasPrefix(v, "pdxbaap/pdx-dapp-exec") || strings.HasPrefix(v, "pdx-dapp-exec") ||
 				strings.HasPrefix(v, "pdxbaap/pdx-dapp-java") || strings.HasPrefix(v, "pdx-dapp-java") {
 				return true
+			} else {
+				log.Println("malformed option or unauthorized image: " + v)
+				return false
 			}
 		}
 	}
@@ -276,6 +292,7 @@ func loadStarted() {
 
 	for scanner.Scan() {
 		text := scanner.Text()
+		log.Println("found started container: " + text)
 		startedContainers[text] = text
 	}
 
@@ -298,6 +315,7 @@ func saveStarted() {
 	writer := bufio.NewWriter(file)
 
 	for _, v := range startedContainers {
+		log.Println("save started container:" + v)
 		fmt.Fprintln(writer, v)
 	}
 
