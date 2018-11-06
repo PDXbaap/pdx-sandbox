@@ -247,9 +247,10 @@ func accessControl(args []string) bool {
 		}
 
 		if !strings.HasPrefix(v, "-") { //docker image now
-			if v == "pdxbaap/pdx-dapp-omni" || v == "pdx-dapp-omni" ||
-				v == "pdxbaap/pdx-dapp-exec" || v == "pdx-dapp-exec" ||
-				v == "pdxbaap/pdx-dapp-java" || v == "pdx-dapp-java" {
+			if strings.HasPrefix(v, "pdxbaap/pdx-sandbox") || strings.HasPrefix(v, "pdx-sandbox") ||
+				strings.HasPrefix(v, "pdxbaap/pdx-dapp-omni") || strings.HasPrefix(v, "pdx-dapp-omni")  ||
+				strings.HasPrefix(v, "pdxbaap/pdx-dapp-exec") || strings.HasPrefix(v, "pdx-dapp-exec") ||
+				strings.HasPrefix(v, "pdxbaap/pdx-dapp-java") || strings.HasPrefix(v, "pdx-dapp-java") {
 				return true
 			}
 		}
