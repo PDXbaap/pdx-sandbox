@@ -1,4 +1,4 @@
-// Copyright 2017 The PDX Blockchain Hybercloud Authors
+// Copyright 2018 The PDX Blockchain Hybercloud Authors
 // This file is part of the PDX chainmux implementation.
 //
 // The PDX Blcockchain Hypercloud is free software: you can redistribute it and/or modify
