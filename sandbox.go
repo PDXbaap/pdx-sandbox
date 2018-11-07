@@ -15,7 +15,7 @@
 // along with the software. If not, see <http://www.gnu.org/licenses/>.
 
 
-// PDX sandboxer, a setgid docker helper for PDX smart-contract sandboxing.
+// PDX sandbox, a setgid docker helper for PDX smart-contract sandboxing.
 
 package main
 
@@ -31,8 +31,8 @@ import (
 	"bufio"
 )
 
-var lockfile = os.Getenv("PDX_HOME")+"/temp/sandboxer.lock"
-var datafile = os.Getenv("PDX_HOME")+"/temp/sandboxer.data"
+var lockfile = os.Getenv("PDX_HOME")+"/temp/sandbox.lock"
+var datafile = os.Getenv("PDX_HOME")+"/temp/sandbox.data"
 
 var startedContainers  = make(map[string]string)
 
@@ -40,21 +40,21 @@ func main() {
 
 	flag.Usage = func() {
 		fmt.Println("")
-		fmt.Println("PDX sandboxer, a hardened setgid docker helper for PDX smart-contract sandboxing")
+		fmt.Println("PDX sandbox, a hardened setgid docker helper for PDX smart-contract sandboxing")
 		fmt.Println("")
 		fmt.Println("Usage [after privilege elevation via sudo or setgid]:")
 		fmt.Println("")
-		fmt.Println("	./sandboxer docker run [OPTIONS] IMAGE [COMMAND] [ARG...]")
-		fmt.Println("	./sandboxer docker stop [OPTIONS] CONTAINER [CONTAINER...]")
-		fmt.Println("	./sandboxer docker stats [OPTIONS] [CONTAINER...]")
+		fmt.Println("	./sandbox docker run [OPTIONS] IMAGE [COMMAND] [ARG...]")
+		fmt.Println("	./sandbox docker stop [OPTIONS] CONTAINER [CONTAINER...]")
+		fmt.Println("	./sandbox docker stats [OPTIONS] [CONTAINER...]")
 		fmt.Println("")
 		fmt.Println("Note: A with-arg option MUST be in --k=v or -k=v format.")
 		fmt.Println("")
 		fmt.Println("For example,")
 		fmt.Println("")
-		fmt.Println("	./sandboxer docker run -it -v=$PDX_HOME/dapps:/dapps/ pdx-dapp-omni /bin/sh")
+		fmt.Println("	./sandbox docker run -it -v=$PDX_HOME/dapps:/dapps/ pdx-dapp-omni /bin/sh")
 		fmt.Println("")
-		fmt.Println("Please visit https://github.com/PDXbaap/pdx-sandboxer to get the latest version.")
+		fmt.Println("Please visit https://github.com/PDXbaap/pdx-sandbox to get the latest version.")
 		fmt.Println("")
 	}
 
@@ -141,7 +141,7 @@ func accessControl(args []string) bool {
 
 	////////////////////////////////////////////////////////
 	//
-	// IMPORTANT: sandboxer whitelist rules
+	// IMPORTANT: sandbox whitelist rules
 	//
 	// 1) Only allow docker run/stop/stats
 	//
@@ -151,11 +151,11 @@ func accessControl(args []string) bool {
 	//
 	// 3) docker stop [OPTIONS] CONTAINER [CONTAINER...]
 	//
-	// 		only containers started by sandboxer
+	// 		only containers started by sandbox
 	//
 	// 4) docker stats [OPTIONS] [CONTAINER...]
 	//
-	//		only containers started by sandboxer
+	//		only containers started by sandbox
 	//
 	//
 	// A docker option-with-arg must be in --key=val or -k=val format

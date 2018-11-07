@@ -12,17 +12,17 @@ echo "to function."
 
 echo ""
 
-echo "Here we grant docker privilege to PDX sandboxer so that on-demand"
+echo "Here we grant docker privilege to PDX sandbox so that on-demand"
 echo "automatic sandboxing can be performed."
 
 echo ""
 
 echo "Access control against abuse is done by the open-sourced PDX"
-echo "sandboxer, which starts or stops docker instances on-demand."
+echo "sandbox, which starts or stops docker instances on-demand."
 
 echo ""
 
-echo "Please visit https://github.com/PDXbaap/pdx-sandboxer for more info."
+echo "Please visit https://github.com/PDXbaap/pdx-sandbox for more info."
 
 
 echo ""
@@ -30,7 +30,7 @@ echo ""
 
 if [ -z "$1" ]
 	then
-		echo "path to pdx sandboxer not supplied, exiting\n"
+		echo "path to pdx sandbox not supplied, exiting\n"
 		exit 1
 
 fi
