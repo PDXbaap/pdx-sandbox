@@ -2,12 +2,12 @@
 
 -- Without setgid
 
-sudo -E ./sandbox docker run -it --rm --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro --name=xzz pdx-dapp-omni /run-exec.sh test
+sudo -E ./sandbox docker run -it --rm --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro --name=xzz pdx-sandbox /run-exec.sh test
 
 -- Setgid docker
 
 sudo chgrp docker ./sandbox
 sudo chmod g+s ./sandbox
 
-./sandbox docker run -it --rm --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro --name=xzz pdx-dapp-omni /run-exec.sh test
+./sandbox docker run -it --rm --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro --name=xzz pdx-sandbox /run-exec.sh test
 
