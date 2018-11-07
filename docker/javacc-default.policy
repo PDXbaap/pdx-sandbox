@@ -1,0 +1,7 @@
+/* AUTOMATICALLY GENERATED ON Fri Oct 19 01:55:14 CST 2018*/
+/* DO NOT EDIT */
+
+grant codeBase "file:/daaps/java/" {
+  permission java.net.SocketPermission "*:2227", "connect";
+};
+

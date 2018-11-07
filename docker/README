@@ -1,0 +1,37 @@
+
+1/ Install docker ce
+
+	https://docs.docker.com/install/linux/docker-ce/ubuntu/
+
+2/ Build docker image
+
+	sudo docker build -t pdx-dapp-java:latest -f Dockerfile.java .
+	sudo docker build -t pdx-dapp-exec:latest -f Dockerfile.exec .
+	sudo docker build -t pdx-dapp-omni:latest -f Dockerfile.omni .
+	sudo docker build -t pdx-sandbox:latest -f Dockerfile.omni .
+
+3/ Run cc container
+
+	sudo docker run -it --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro pdx-dapp-java HelloWorld.jar
+	sudo docker run -it --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro pdx-dapp-exec test 
+
+	sudo docker run -it --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro pdx-dapp-omni /run-java.sh HelloWorld.jar
+	sudo docker run -it --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro pdx-dapp-omni /run-exec.sh test 
+
+
+	Here, the storage, memory and cpu limits are from chaincode deployment requirements. 
+	The cost of deploying and invoking a dapp proportionately correlates to the 
+	memory, cpu, disk and network requirements.
+
+4) Start/stop dapp-* container
+
+	Via open-sourced, security-hardened setuid'd sandboxer 
+
+5) Create JDK 11.0.1 mini
+
+	./jlink --module-path ../jmods --add-modules java.base,java.logging,java.net.http --compress=2 --no-header-files --no-man-pages --strip-debug --vm=server --output ../jdk-11.0.1-mini
+ 	
+6) Push to docker hub
+
+	https://ropenscilabs.github.io/r-docker-tutorial/04-Dockerhub.html
+ 
