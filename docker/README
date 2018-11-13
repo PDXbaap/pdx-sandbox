@@ -34,4 +34,9 @@
 6) Push to docker hub
 
 	https://ropenscilabs.github.io/r-docker-tutorial/04-Dockerhub.html
+
+7) If docker-in-docker
+
+sudo docker run --privileged -it -v=/home/jz/pdx/dapps:/dapps/:ro pdx-hypercloud
+docker run -it -v=/dapps:/dapps:ro pdxbaap/pdx-sandbox /run-java.sh HelloWorld.jar
  
