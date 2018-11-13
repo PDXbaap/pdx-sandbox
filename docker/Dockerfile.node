@@ -1,4 +1,4 @@
-# pdx-hypercloud
+# pdx-blockchain
 #
 #       PDX blockchain hypercloud: node stack 
 #
@@ -8,9 +8,11 @@ FROM debian:9.5-slim
 
 LABEL maintainer="jz@pdx.ltd"
 
+COPY run-node.sh /run-node.sh
+
 # Add openjdk 11 support
 COPY jdk-11.0.1-mini /jdk
-ENV PATH=$PATH:/jdk/bin
+ENV PATH=$PATH:/usr/bin:/jdk/bin
 
 # Let's start with some basic stuff.
 RUN apt-get update -qq && apt-get install -qqy \
@@ -30,4 +32,7 @@ RUN chmod +x /usr/local/bin/wrapdocker
 
 # Define additional metadata for our image.
 VOLUME /var/lib/docker
-CMD ["wrapdocker"]
+
+#CMD ["wrapdocker"]
+
+ENTRYPOINT ["/run-node.sh"]

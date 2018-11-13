@@ -10,6 +10,8 @@
 	sudo docker build -t pdx-dapp-omni:latest -f Dockerfile.omni .
 	sudo docker build -t pdx-sandbox:latest -f Dockerfile.omni .
 
+	sudo docker build -t pdx-blockchain:latest -f Dockerfile.node .
+
 3/ Run cc container
 
 	sudo docker run -it --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro pdx-dapp-java HelloWorld.jar
@@ -37,6 +39,7 @@
 
 7) If docker-in-docker
 
-sudo docker run --privileged -it -v=/home/jz/pdx/dapps:/dapps/:ro pdx-hypercloud
+sudo docker run --privileged -it -v=/home/jz/pdx/dapps:/dapps/:ro pdx-blockchain
 docker run -it -v=/dapps:/dapps:ro pdxbaap/pdx-sandbox /run-java.sh HelloWorld.jar
- 
+
+sudo docker rm -f $(sudo docker ps -a -q) && sudo docker rmi -f $(sudo docker images -q) 
