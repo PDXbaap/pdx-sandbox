@@ -10,4 +10,4 @@ LABEL maintainer="jz@pdx.ltd"
 
 COPY run-chain.sh /run-chain.sh
 
-
+ENTRYPOINT /run-chain.sh
