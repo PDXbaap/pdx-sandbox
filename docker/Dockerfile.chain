@@ -1,0 +1,13 @@
+# pdx-chainstack
+#
+#       PDX blockchain hypercloud: chain stack 
+#
+# VERSION 0.1
+
+FROM debian:9.5-slim 
+
+LABEL maintainer="jz@pdx.ltd"
+
+COPY run-chain.sh /run-chain.sh
+
+
