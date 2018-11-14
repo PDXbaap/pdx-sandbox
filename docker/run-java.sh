@@ -1,8 +1,8 @@
 #!/bin/sh
 
-DAPP_HOME=/dapps
+PDX_HOME=/pdx
 
-echo "Starting chain code"
+echo "Starting d-app: " $1
 
 if [ -z "$1" ]
 	then	
@@ -14,13 +14,13 @@ fi
 if [ -z "$2" ] 
 	then
 		echo "Using default security profile" 
-		java -jar $DAPP_HOME/java/$1 
+		java -jar $PDX_HOME/bin/dapps/java/$1 
 	else 
 		echo "Using custom security profile" 
-		java -Djava.security.manager -Djava.security.policy=$DAPP_HOME/jsec/$2 -jar $DAPP_HOME/java/$1 
+		java -Djava.security.manager -Djava.security.policy=$PDX_HOME/bin/dapps/java/$2 -jar $PDX_HOME/bin/dapps/java/$1 
 fi
 
-echo "Shutdown chain code"
+echo "Shutdown d-app: " $1
 
 exit 0
 

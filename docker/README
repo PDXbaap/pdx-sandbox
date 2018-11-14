@@ -43,3 +43,20 @@ sudo docker run --privileged -it -v=/home/jz/pdx/dapps:/dapps/:ro -e LOG=file pd
 docker run -it -v=/dapps:/dapps:ro pdxbaap/pdx-sandbox /run-java.sh HelloWorld.jar
 
 sudo docker rm -f $(sudo docker ps -a -q) && sudo docker rmi -f $(sudo docker images -q) 
+
+8) Installation guide
+
+- get pdx-blockchain-node.tgz
+ 
+- untar to $PDX_HOME
+
+- sudo docker run -v=$PDX_HOME:/pdx-home:rw /run-node.sh
+
+	- if first time, 
+	
+		create keystore, node key 
+	
+		call registry.pdx.link/node to register
+		receive trust chain numner, genersis, static nodes
+	
+				

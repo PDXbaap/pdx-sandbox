@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DAPP_HOME=/dapps
+PDX_HOME=/pdx
 
 if [ -z "$1" ]
 	then	
@@ -9,11 +9,11 @@ if [ -z "$1" ]
 
 fi
 
-echo "Starting chain code: " $1
+echo "Starting d-app: " $1
 
-$DAPP_HOME/exec/$1
+$PDX_HOME/bin/dapps/exec/$1
 
-echo "Shutdown chain code: " $1
+echo "Shutdown d-app: " $1
 
 exit 0
 

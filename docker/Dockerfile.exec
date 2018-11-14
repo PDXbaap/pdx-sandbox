@@ -17,7 +17,7 @@ FROM busybox:1.29.3-glibc
 
 LABEL maintainer="jz@pdx.ltd"
 
-COPY run-exec.sh /run.sh
+COPY pdx_home/dapps/run-exec.sh /run.sh
 
 ENTRYPOINT ["/run.sh"]
 

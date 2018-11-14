@@ -23,8 +23,7 @@ LABEL maintainer="jz@pdx.ltd"
 
 COPY jdk-11.0.1-mini /jdk
 
-COPY run-exec.sh /run-exec.sh
-COPY run-java.sh /run-java.sh
+COPY run-java.sh /pdx/bin/run-java.sh
+COPY run-exec.sh /pdx/bin/run-exec.sh
 
-ENV PATH=$PATH:/jdk/bin
-
+ENV PATH=$PATH:/jdk/bin:/pdx/bin

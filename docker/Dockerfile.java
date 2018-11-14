@@ -18,7 +18,7 @@ LABEL maintainer="jz@pdx.ltd"
 
 RUN apk add --no-cache bash
 
-COPY run-java.sh /run.sh
+COPY pdx_home/dapps/run-java.sh /run.sh
 
 ENTRYPOINT ["/run.sh"]
 

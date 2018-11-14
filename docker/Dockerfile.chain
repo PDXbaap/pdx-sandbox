@@ -8,6 +8,7 @@ FROM debian:9.5-slim
 
 LABEL maintainer="jz@pdx.ltd"
 
-COPY run-chain.sh /run-chain.sh
+COPY pdx_home/bin/pdxc /pdx/bin/pdxc
+COPY run-chain.sh /pdx/bin/run-chain.sh
 
-ENTRYPOINT /run-chain.sh
+ENTRYPOINT /pdx/bin/run-chain.sh
