@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ensure that all nodes in /dev/mapper correspond to mapped devices currently loaded by the device-mapper kernel driver
-dmsetup mknodes
+# dmsetup mknodes
 
 # First, make sure that cgroups are mounted correctly.
 CGROUP=/sys/fs/cgroup
@@ -46,7 +46,7 @@ do
         # "name=foo". This shouldn't have any adverse effect.
         echo $SUBSYS | grep -q ^name= && {
                 NAME=$(echo $SUBSYS | sed s/^name=//)
-                ln -s $SUBSYS $CGROUP/$NAME
+                ln -s $SUBSYS $CGROUP/$NAME &> /dev/null
         }
 
         # Likewise, on at least one system, it has been reported that
@@ -54,7 +54,7 @@ do
         # (respectively "cpu" and "cpuacct") with "-o cpuacct,cpu"
         # but on a directory called "cpu,cpuacct" (note the inversion
         # in the order of the groups). This tries to work around it.
-        [ $SUBSYS = cpuacct,cpu ] && ln -s $SUBSYS $CGROUP/cpu,cpuacct
+        [ $SUBSYS = cpuacct,cpu ] && ln -s $SUBSYS $CGROUP/cpu,cpuacct &> /dev/null
 done
 
 # Note: as I write those lines, the LXC userland tools cannot setup
