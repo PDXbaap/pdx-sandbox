@@ -18,7 +18,7 @@
 	sudo docker run -it --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro pdx-dapp-exec test 
 
 	sudo docker run -it --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro pdx-dapp-omni /run-java.sh HelloWorld.jar
-	sudo docker run -it --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro pdx-dapp-omni /run-exec.sh test 
+	sudo docker run -it --cap-drop=all --memory=100m --cpus="0.1" -v=$PDX_HOME/dapps:/dapps/:ro pdx-dapp-omni /run-exec.sh test 
 
 
 	Here, the storage, memory and cpu limits are from chaincode deployment requirements. 

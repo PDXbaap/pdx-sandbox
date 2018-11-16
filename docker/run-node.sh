@@ -4,11 +4,14 @@
 
 /usr/local/bin/wrapdocker
 
-# Start PDX blockchain stack
+# Start docker controller
 
-echo "PDX blockchain is started"
+pass=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32)
 
-exec bash --login
+echo $pass
 
-exit 0
+adduser --no-create-home --disabled-login --gecos '' pdxuser
 
+echo pdxuser:$pass | chpasswd
+
+sudo -u pdxuser /pdx/bin/run-baap.sh
