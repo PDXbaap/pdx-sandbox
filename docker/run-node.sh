@@ -4,7 +4,11 @@
 
 /usr/local/bin/wrapdocker
 
-# Start docker controller
+# TODO Start docker controller
+
+# TODO Load docker images 
+
+# Create unprivileged user
 
 pass=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32)
 
