@@ -15,7 +15,7 @@
 // along with the software. If not, see <http://www.gnu.org/licenses/>.
 
 
-// PDX sandbox, a setgid docker helper for PDX smart-contract sandboxing.
+// PDX sandbox, a secure docker service supporting signed images and fine-grained access control 
 
 package main
 
@@ -35,21 +35,27 @@ var imgVerifierScript string
 var lockfile string
 var datafile string
 
+var  tcpAddr string
+
 func main() {
 
 	flag.Usage = func() {
 		fmt.Println("")
-		fmt.Println("PDX dockguard,  a hardened docker helper service for container sandboxing")
+		fmt.Println("PDX sandbox,  a secure privileged service for hardcore docker sandboxing")
 		fmt.Println("")
-		fmt.Println("Please visit https://github.com/PDXbaap/pdx-dockguard for more information")
+		fmt.Println("Please visit https://github.com/PDXbaap/pdx-sandbox for more information")
 		fmt.Println("")
-		fmt.Println("Use with elevated privileged only PDX iaas-compute installed at  $PDX_HOME ")
+		fmt.Println("Use with elevated privileged with PDX iaas-compute installed at $PDX_HOME")
 		fmt.Println("")
 
 		flag.PrintDefaults()
 	}
 
-	pdxHome = os.Getenv("PDX_HOME")
+	flag.StringVar(&tcpAddr, "addr",  "127.0.0.1:0",        "TCP host:port to listen on")
+	flag.StringVar(&pdxHome, "home", os.Getenv("PDX_HOME"), "PDX iaas-compute directory")
+
+	flag.Parse()
+
 	if pdxHome == "" {
 		flag.Usage()
 		os.Exit(1)
@@ -63,12 +69,11 @@ func main() {
 	lockfile = pdxHome + "/temp/sandbox.lock"
 	datafile = pdxHome + "/temp/sandbox.data"
 
-
 	lock()
 
 	defer unlock()
 
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	listener, err := net.Listen("tcp", tcpAddr)
 
 	if err != nil {
 		log.Fatalln(err)
